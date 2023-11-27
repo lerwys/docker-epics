@@ -1,0 +1,89 @@
+# Author: Lucas Russo
+
+FROM debian:11-slim
+
+ARG INSTALL_PREFIX=/usr/local
+ARG TZ=America/Los_Angeles
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Set correct timezone
+ENV TZ ${TZ}
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        gettext-base \
+        git \
+        libpcre3-dev \
+        libreadline-dev \
+        tzdata \
+        python3 \
+        python3-pip \
+        python-is-python3 \
+        wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    dpkg-reconfigure --frontend noninteractive tzdata
+
+# EPICS Base
+ARG EPICS_VERSION=7.0.7
+ENV EPICS_HOST_ARCH linux-x86_64
+ENV INSTALL_LOCATION=${INSTALL_PREFIX}/epics/${EPICS_VERSION}
+ENV EPICS_BASE ${INSTALL_LOCATION}/base
+ENV EPICS_MODULES ${INSTALL_LOCATION}/modules
+ENV EPICS_EXTENSIONS ${INSTALL_LOCATION}/extensions
+ENV PATH ${EPICS_BASE}/bin/${EPICS_HOST_ARCH}:${PATH}
+ENV EPICS_CA_AUTO_ADDR_LIST YES
+ENV EPICS_CA_MAX_ARRAY_BYTES 100000000
+ENV PYEPICS_LIBCA ${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libca.so
+
+ARG EPICS_BASE_URL=https://epics.anl.gov/download/base/base-${EPICS_VERSION}.tar.gz
+
+RUN set -e; \
+    mkdir -p ${INSTALL_LOCATION} && \
+    cd ${INSTALL_LOCATION} && \
+    wget -c ${EPICS_BASE_URL} -O - | tar -xz && \
+    ln -sf base-${EPICS_VERSION} base && \
+    cd base-${EPICS_VERSION} && \
+    make -j$(nproc) && \
+    echo "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}" > /etc/ld.so.conf.d/epics.conf && \
+    ldconfig
+
+RUN set -e; \
+    mkdir -p ${EPICS_MODULES} \
+    mkdir -p ${EPICS_EXTENSIONS}
+
+ARG EPICS_EXTENSIONS_URL=https://github.com/epics-extensions/extensions.git
+
+# EPICS extensions
+RUN set -e; \
+    git clone ${EPICS_EXTENSIONS_URL} ${EPICS_EXTENSIONS} && \
+    cd ${EPICS_EXTENSIONS} && \
+    sed -i -e " \
+        /EPICS_BASE *=/ { \
+            s|.*|EPICS_BASE = ${EPICS_BASE}|; \
+        }" \
+        configure/RELEASE && \
+    sed -i -e " \
+        /X11_LIB *=/ { \
+            s|.*|X11_LIB = /usr/lib/x86_64-linux-gnu|; \
+        }" \
+        -e " \
+        /MOTIF_LIB *=/ { \
+            s|.*|MOTIF_LIB = /usr/lib/x86_64-linux-gnu|; \
+        }" \
+        configure/os/CONFIG_SITE.${EPICS_HOST_ARCH}.${EPICS_HOST_ARCH}
+
+ARG VCS_REF
+ARG BUILD_VERSION
+
+LABEL org.label-schema.schema-version="1.0"
+LABEL org.label-schema.vcs-ref=$VCS_REF
+LABEL org.label-schema.name="lerwys/epics_base"
+LABEL org.label-schema.description="Debian EPICS base docker image"
+LABEL org.label-schema.url="https://github.com/lerwys/docker-images"
+LABEL org.label-schema.version=$BUILD_VERSION
+LABEL org.label-schema.docker.cmd="docker run -it --rm --name=debepics lerwys/epics_base /bin/bash"

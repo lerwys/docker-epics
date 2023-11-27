@@ -1,0 +1,112 @@
+# Author: Lucas Russo
+
+ARG EPICS_VERSION=7.0.7
+FROM lerwys/epics_base:${EPICS_VERSION}
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Asyn
+ARG ASYN_VERSION=R4-31
+ARG ASYN_URL=https://github.com/epics-modules/asyn/archive/refs/tags/${ASYN_VERSION}.tar.gz
+ENV ASYN=${EPICS_MODULES}/asyn-${ASYN_VERSION}
+
+RUN set -e; \
+    cd ${EPICS_MODULES} && \
+    wget -c ${ASYN_URL} -O - | tar -xz && \
+    cd asyn-${ASYN_VERSION} && \
+    sed -i -e " \
+        /SUPPORT *=/ { \
+            s|\(.*\)|# \1|; \
+        }" \
+        -e " \
+        /IPAC *=/ { \
+            s|\(.*\)|# \1|; \
+        }" \
+        -e " \
+        /SNCSEQ *=/ { \
+            s|\(.*\)|# \1|; \
+        }" \
+        -e " \
+        /EPICS_BASE *=/ { \
+            s|.*|EPICS_BASE = ${EPICS_BASE}|; \
+        }" \
+        configure/RELEASE && \
+    make -j$(nproc)
+
+# Busy
+ARG BUSY_VERSION=R1-6-1
+ARG BUSY_URL=https://github.com/epics-modules/busy/archive/refs/tags/${BUSY_VERSION}.tar.gz
+ENV BUSY=${EPICS_MODULES}/busy-${BUSY_VERSION}
+
+RUN set -e; \
+    cd ${EPICS_MODULES} && \
+    wget -c ${BUSY_URL} -O - | tar -xz && \
+    cd busy-${BUSY_VERSION} && \
+    sed -i -e " \
+        /SUPPORT *=/ { \
+            s|\(.*\)|# \1|; \
+        }" \
+        -e " \
+        /ASYN *=/ { \
+            s|.*|ASYN = ${ASYN}|; \
+        }" \
+        -e " \
+        /EPICS_BASE *=/ { \
+            s|.*|EPICS_BASE = ${EPICS_BASE}|; \
+        }" \
+        configure/RELEASE && \
+    make -j$(nproc)
+
+# Autosave
+ARG AUTOSAVE_VERSION=R5-8
+ARG AUTOSAVE_URL=https://github.com/epics-modules/autosave/archive/refs/tags/${AUTOSAVE_VERSION}.tar.gz
+ENV AUTOSAVE=${EPICS_MODULES}/autosave-${AUTOSAVE_VERSION}
+
+RUN set -e; \
+    cd ${EPICS_MODULES} && \
+    wget -c ${AUTOSAVE_URL} -O - | tar -xz && \
+    cd autosave-${AUTOSAVE_VERSION} && \
+    sed -i -e " \
+        /EPICS_BASE *=/ { \
+            s|.*|EPICS_BASE = ${EPICS_BASE}|; \
+        }" \
+        configure/RELEASE && \
+    make -j$(nproc)
+
+# Sequencer
+ARG SNCSEQ_VERSION=2.2.4
+ARG SNCSEQ_URL=http://www-csr.bessy.de/control/SoftDist/sequencer/releases/seq-${SNCSEQ_VERSION}.tar.gz
+ENV SNCSEQ=${EPICS_MODULES}/seq-${SNCSEQ_VERSION}
+
+RUN set -e; \
+    apt-get update && \
+    apt-get -y --no-install-recommends install re2c && \
+    rm -rf /var/lib/apt/lists/* && \
+    cd ${EPICS_MODULES} && \
+    wget -c ${SNCSEQ_URL} -O - | tar -xz && \
+    cd seq-${SNCSEQ_VERSION} && \
+    sed -i -e " \
+        /SUPPORT *=/ { \
+            s|\(.*\)|# \1|; \
+        }" \
+        -e " \
+        /ASYN *=/ { \
+            s|.*|ASYN = ${ASYN}|; \
+        }" \
+        -e " \
+        /EPICS_BASE *=/ { \
+            s|.*|EPICS_BASE = ${EPICS_BASE}|; \
+        }" \
+        configure/RELEASE && \
+    make -j$(nproc)
+
+ARG VCS_REF
+ARG BUILD_VERSION
+
+LABEL org.label-schema.schema-version="1.0"
+LABEL org.label-schema.vcs-ref=$VCS_REF
+LABEL org.label-schema.name="lerwys/epics_modules"
+LABEL org.label-schema.description="Debian EPICS modules docker image"
+LABEL org.label-schema.url="https://github.com/lerwys/docker-images"
+LABEL org.label-schema.version=$BUILD_VERSION
+LABEL org.label-schema.docker.cmd="docker run -it --rm --name=debepicsmodules lerwys/epics_modules /bin/bash"
