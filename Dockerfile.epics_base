@@ -1,6 +1,6 @@
 # Author: Lucas Russo
 
-FROM debian:11-slim
+FROM debian:12-slim
 
 ARG INSTALL_PREFIX=/usr/local
 ARG TZ=America/Los_Angeles
