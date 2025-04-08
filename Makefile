@@ -18,7 +18,6 @@ all: $(TAGS) $(RTAGS)
 		--ssh default=$(HOME)/.ssh/id_ed25519 \
 		--build-arg EPICS_VERSION=$(EPICS_VERSION) \
 		--build-arg BUILD_VERSION=0.0.1 \
-		--build-arg BUILD_DATE=$(shell date +\"%Y-%m-%dT%H:%M:%S%z\") \
 		-f $< \
 		.
 	touch $@
