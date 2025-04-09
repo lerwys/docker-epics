@@ -8,11 +8,13 @@ ENV DEBIAN_FRONTEND noninteractive
 USER root
 
 # Asyn
-ARG ASYN_VERSION=R4-31
+ARG ASYN_VERSION=R4-45
 ARG ASYN_URL=https://github.com/epics-modules/asyn/archive/refs/tags/${ASYN_VERSION}.tar.gz
 ENV ASYN=${EPICS_MODULES}/asyn-${ASYN_VERSION}
 
 RUN set -e; \
+    apt-get update && \
+    apt-get -y --no-install-recommends install libtirpc-dev && \
     cd ${EPICS_MODULES} && \
     wget -c ${ASYN_URL} -O - | tar -xz && \
     cd asyn-${ASYN_VERSION} && \
@@ -33,10 +35,15 @@ RUN set -e; \
             s|.*|EPICS_BASE = ${EPICS_BASE}|; \
         }" \
         configure/RELEASE && \
+    sed -i -e " \
+        /TIRPC *=/ { \
+            s|.*|TIRPC = YES|; \
+        }" \
+        configure/CONFIG_SITE && \
     make -j$(nproc)
 
 # Busy
-ARG BUSY_VERSION=R1-6-1
+ARG BUSY_VERSION=R1-7-4
 ARG BUSY_URL=https://github.com/epics-modules/busy/archive/refs/tags/${BUSY_VERSION}.tar.gz
 ENV BUSY=${EPICS_MODULES}/busy-${BUSY_VERSION}
 
@@ -46,6 +53,10 @@ RUN set -e; \
     cd busy-${BUSY_VERSION} && \
     sed -i -e " \
         /SUPPORT *=/ { \
+            s|\(.*\)|# \1|; \
+        }" \
+        -e " \
+        /AUTOSAVE *=/ { \
             s|\(.*\)|# \1|; \
         }" \
         -e " \
@@ -60,7 +71,7 @@ RUN set -e; \
     make -j$(nproc)
 
 # Autosave
-ARG AUTOSAVE_VERSION=R5-8
+ARG AUTOSAVE_VERSION=R5-11
 ARG AUTOSAVE_URL=https://github.com/epics-modules/autosave/archive/refs/tags/${AUTOSAVE_VERSION}.tar.gz
 ENV AUTOSAVE=${EPICS_MODULES}/autosave-${AUTOSAVE_VERSION}
 
@@ -76,9 +87,9 @@ RUN set -e; \
     make -j$(nproc)
 
 # Sequencer
-ARG SNCSEQ_VERSION=2.2.4
-ARG SNCSEQ_URL=http://www-csr.bessy.de/control/SoftDist/sequencer/releases/seq-${SNCSEQ_VERSION}.tar.gz
-ENV SNCSEQ=${EPICS_MODULES}/seq-${SNCSEQ_VERSION}
+ARG SNCSEQ_VERSION=R2-2-9
+ARG SNCSEQ_URL=https://github.com/epics-modules/sequencer/archive/refs/tags/${SNCSEQ_VERSION}.tar.gz
+ENV SNCSEQ=${EPICS_MODULES}/sequencer-${SNCSEQ_VERSION}
 
 RUN set -e; \
     apt-get update && \
@@ -86,7 +97,7 @@ RUN set -e; \
     rm -rf /var/lib/apt/lists/* && \
     cd ${EPICS_MODULES} && \
     wget -c ${SNCSEQ_URL} -O - | tar -xz && \
-    cd seq-${SNCSEQ_VERSION} && \
+    cd sequencer-${SNCSEQ_VERSION} && \
     sed -i -e " \
         /SUPPORT *=/ { \
             s|\(.*\)|# \1|; \
