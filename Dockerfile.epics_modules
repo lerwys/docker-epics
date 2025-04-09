@@ -3,7 +3,7 @@
 ARG EPICS_VERSION=7.0.7
 FROM lerwys/epics_base:${EPICS_VERSION}
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 USER root
 
