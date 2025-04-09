@@ -1,0 +1,28 @@
+# Author: Lucas Russo
+
+ARG EPICS_VERSION=7.0.7
+FROM lerwys/epics_modules:${EPICS_VERSION}
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+USER root
+
+# Additional dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        vim \
+        ssh && \
+    rm -rf /var/lib/apt/lists/*
+
+USER epics
+
+ARG VCS_REF
+ARG BUILD_VERSION
+
+LABEL org.label-schema.schema-version="1.0"
+LABEL org.label-schema.vcs-ref=$VCS_REF
+LABEL org.label-schema.name="lerwys/epics_env"
+LABEL org.label-schema.description="Debian EPICS env docker image"
+LABEL org.label-schema.url="https://github.com/lerwys/docker-images"
+LABEL org.label-schema.version=$BUILD_VERSION
+LABEL org.label-schema.docker.cmd="docker run -it --rm --name=debepicsenv lerwys/epics_env /bin/bash"
