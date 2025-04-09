@@ -17,6 +17,7 @@ RUN apt-get update && \
         build-essential \
         ca-certificates \
         gettext-base \
+        ssh \
         git \
         libpcre3-dev \
         libreadline-dev \
