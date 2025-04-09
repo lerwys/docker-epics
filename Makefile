@@ -14,7 +14,6 @@ all: $(TAGS) $(RTAGS)
 	DOCKER_BUILDKIT=1 docker build \
 		-t lerwys/$*:$(EPICS_VERSION) \
 		-t lerwys/$*:latest \
-		--ssh default=$(HOME)/.ssh/id_ed25519 \
 		--build-arg EPICS_VERSION=$(EPICS_VERSION) \
 		--build-arg BUILD_VERSION=0.0.1 \
 		-f $< \
