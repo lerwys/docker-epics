@@ -1,2 +1,4 @@
 *.swp
 *~
+.epics_base.tag
+.epics_modules.tag
