@@ -3,7 +3,6 @@ REMOTE_NAMESPACE ?= docker.io
 CMDSEP = ;
 
 DOCKERIMAGES = epics_base \
-			   epics_edm \
 			   epics_modules
 
 TAGS = $(patsubst %, .%.tag, $(DOCKERIMAGES))
@@ -32,7 +31,6 @@ push: $(RTAGS)
 	$(foreach tag, $(patsubst .%.rtag, %, $(RTAGS)), \
 		docker push $(REMOTE_NAMESPACE)/lerwys/$(tag):$(EPICS_VERSION) $(CMDSEP))
 
-.epics_edm.tag: .epics_base.tag
 .epics_modules.tag: .epics_base.tag
 .epics_feed.tag: .epics_modules.tag
 
