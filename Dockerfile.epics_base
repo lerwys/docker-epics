@@ -77,6 +77,14 @@ RUN set -e; \
         }" \
         configure/os/CONFIG_SITE.${EPICS_HOST_ARCH}.${EPICS_HOST_ARCH}
 
+# EPICS user/group
+RUN groupadd -g 123 epics && \
+    useradd -m -u 123 -g epics epics
+
+USER epics
+WORKDIR /home/epics
+
+# Tags/Labels
 ARG VCS_REF
 ARG BUILD_VERSION
 

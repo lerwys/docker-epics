@@ -5,6 +5,8 @@ FROM lerwys/epics_base:${EPICS_VERSION}
 
 ENV DEBIAN_FRONTEND noninteractive
 
+USER root
+
 # Asyn
 ARG ASYN_VERSION=R4-31
 ARG ASYN_URL=https://github.com/epics-modules/asyn/archive/refs/tags/${ASYN_VERSION}.tar.gz
@@ -99,6 +101,8 @@ RUN set -e; \
         }" \
         configure/RELEASE && \
     make -j$(nproc)
+
+USER epics
 
 ARG VCS_REF
 ARG BUILD_VERSION
