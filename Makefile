@@ -4,7 +4,8 @@ CONTAINER_CMD ?= podman
 CMDSEP = ;
 
 DOCKERIMAGES = epics_base \
-			   epics_modules
+			   epics_modules \
+			   epics_env
 
 GIT_COMMIT = $(git rev-parse --short HEAD)
 TAGS = $(patsubst %, .%.tag, $(DOCKERIMAGES))
