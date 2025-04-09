@@ -8,23 +8,33 @@ The following hierarchy was built:
 
 * EPICS base
 
+With Docker:
+
 ```bash
 docker build -t lerwys/epics_base -f Dockerfile.epics_base .
 ```
 
-* EPICS edm
+With Podman:
 
 ```bash
-docker build -t lerwys/epics_edm -f Dockerfile.epics_edm .
+podman build -t lerwys/epics_base -f Dockerfile.epics_base .
 ```
 
 * EPICS modules
+
+With Docker:
 
 ```bash
 docker build -t lerwys/epics_modules -f Dockerfile.epics_modules .
 ```
 
-Another option is to use the Makefile:
+With Podman:
+
+```bash
+podman build -t lerwys/epics_modules -f Dockerfile.epics_modules .
+```
+
+Another option is to use the Makefile (defaults to podman):
 
 ```bash
 make
@@ -37,13 +47,14 @@ How to run
 
 In order to run an image interactively:
 
+With Docker:
+
 ```bash
-docker run --rm -it --name test --network host lerwys/<IMAGE_NAME> bash
+docker run --rm -it --name epics_env --network host -v $HOME/.ssh:/home/epics/.ssh:ro lerwys/<IMAGE_NAME> bash
 ```
 
-In order to run the EPICS EDM image you can do:
+With Podman:
 
 ```bash
-xhost local:root
-docker run --rm -it --name epics_edm --network="host" -e DISPLAY=${DISPLAY} -v /tmp/.X11-unix:/tmp/.X11-unix -v $HOME/.Xauthority:/root/.Xauthority lerwys/epics_edm:3.15.5
+podman run --rm -it --name epics_env --network host --userns=keep-id -v $HOME/.ssh:/home/epics/.ssh:ro docker.io/lerwys/epics_modules bash
 ```
