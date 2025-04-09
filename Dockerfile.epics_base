@@ -78,8 +78,8 @@ RUN set -e; \
         configure/os/CONFIG_SITE.${EPICS_HOST_ARCH}.${EPICS_HOST_ARCH}
 
 # EPICS user/group
-RUN groupadd -g 123 epics && \
-    useradd -m -u 123 -g epics epics
+RUN groupadd -g 1000 epics && \
+    useradd -m -u 1000 -g epics epics
 
 USER epics
 WORKDIR /home/epics
